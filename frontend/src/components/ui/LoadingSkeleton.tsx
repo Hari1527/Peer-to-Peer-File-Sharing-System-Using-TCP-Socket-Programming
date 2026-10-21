@@ -10,9 +10,9 @@ export function LoadingSkeleton({ variant = 'card', count = 1 }: Props) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {items.map((_, i) => (
-          <div key={i} className="bg-[#1a1d28] rounded-xl border border-[#2a2d3a] p-5 animate-pulse">
-            <div className="h-4 w-20 bg-[#2a2d3a] rounded mb-3" />
-            <div className="h-8 w-16 bg-[#2a2d3a] rounded" />
+          <div key={i} className="glass-card rounded-2xl p-5 border border-white/[0.07] overflow-hidden relative">
+            <div className="h-4 w-24 rounded-lg bg-white/[0.06] animate-shimmer mb-4" />
+            <div className="h-8 w-20 rounded-lg bg-white/[0.08] animate-shimmer" />
           </div>
         ))}
       </div>
@@ -20,12 +20,13 @@ export function LoadingSkeleton({ variant = 'card', count = 1 }: Props) {
 
   if (variant === 'table')
     return (
-      <div className="space-y-3">
+      <div className="space-y-3 p-4">
         {items.map((_, i) => (
-          <div key={i} className="flex gap-4 animate-pulse">
-            <div className="h-4 bg-[#2a2d3a] rounded flex-1" />
-            <div className="h-4 bg-[#2a2d3a] rounded w-20" />
-            <div className="h-4 bg-[#2a2d3a] rounded w-24" />
+          <div key={i} className="flex items-center gap-4 py-2 border-b border-white/[0.04]">
+            <div className="h-4 bg-white/[0.06] rounded-md flex-1 animate-shimmer" />
+            <div className="h-4 bg-white/[0.05] rounded-md w-24 animate-shimmer" />
+            <div className="h-4 bg-white/[0.05] rounded-md w-28 animate-shimmer" />
+            <div className="h-8 bg-white/[0.06] rounded-lg w-20 animate-shimmer" />
           </div>
         ))}
       </div>
@@ -33,9 +34,13 @@ export function LoadingSkeleton({ variant = 'card', count = 1 }: Props) {
 
   if (variant === 'text')
     return (
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         {items.map((_, i) => (
-          <div key={i} className="h-4 bg-[#2a2d3a] rounded animate-pulse" style={{ width: `${60 + Math.random() * 40}%` }} />
+          <div
+            key={i}
+            className="h-4 bg-white/[0.06] rounded-md animate-shimmer"
+            style={{ width: `${60 + ((i * 13) % 35)}%` }}
+          />
         ))}
       </div>
     );
@@ -43,10 +48,16 @@ export function LoadingSkeleton({ variant = 'card', count = 1 }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {items.map((_, i) => (
-        <div key={i} className="bg-[#1a1d28] rounded-xl border border-[#2a2d3a] p-5 animate-pulse">
-          <div className="h-4 w-24 bg-[#2a2d3a] rounded mb-4" />
-          <div className="h-3 w-full bg-[#2a2d3a] rounded mb-2" />
-          <div className="h-3 w-3/4 bg-[#2a2d3a] rounded" />
+        <div key={i} className="glass-card rounded-2xl p-5 border border-white/[0.07]">
+          <div className="flex justify-between items-center mb-4">
+            <div className="h-4 w-28 bg-white/[0.08] rounded-md animate-shimmer" />
+            <div className="h-5 w-16 bg-white/[0.06] rounded-full animate-shimmer" />
+          </div>
+          <div className="space-y-2 mb-4">
+            <div className="h-3 w-full bg-white/[0.05] rounded animate-shimmer" />
+            <div className="h-3 w-3/4 bg-white/[0.05] rounded animate-shimmer" />
+          </div>
+          <div className="h-8 w-full bg-white/[0.06] rounded-xl animate-shimmer" />
         </div>
       ))}
     </div>

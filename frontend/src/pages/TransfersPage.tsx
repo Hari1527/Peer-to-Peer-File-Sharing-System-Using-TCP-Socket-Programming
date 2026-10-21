@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, ArrowUpDown, HardDrive, Globe } from 'lucide-react';
 import { useAppContext, useTrackerApi, usePeerApi } from '../context/AppContext';
 import { useApi, useInterval } from '../hooks/useApi';
 import { TransferList } from '../components/transfers/TransferList';
@@ -19,34 +19,63 @@ export default function TransfersPage() {
 
   const current = tab === 'local' ? localTransfers : globalTransfers;
 
-  useInterval(() => { current.refetch(); }, ACTIVE_REFRESH_INTERVAL);
+  // Poll active transfers every 3s
+  useInterval(() => {
+    current.refetch();
+  }, ACTIVE_REFRESH_INTERVAL);
 
   const handleCancel = async (transferId: string) => {
     try {
       await peerApi.cancelTransfer(transferId);
-      addNotification('info', 'Transfer cancelled');
+      addNotification('info', 'Transfer cancelled gracefully');
       localTransfers.refetch();
     } catch (err) {
-      addNotification('error', `Cancel failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      addNotification(
+        'error',
+        `Cancel failed: ${err instanceof Error ? err.message : 'Unknown error'}`
+      );
     }
   };
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button onClick={() => setTab('local')} className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${tab === 'local' ? 'bg-blue-500/10 text-blue-400' : 'text-gray-500 hover:text-gray-300'}`}>
-            Local Transfers
+    <div className="space-y-5 animate-fade-in">
+      {/* Scope Switcher & Header Controls */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2 p-1 glass-card rounded-2xl border border-white/[0.08] w-fit">
+          <button
+            onClick={() => setTab('local')}
+            className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all ${
+              tab === 'local'
+                ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <HardDrive className="w-3.5 h-3.5" />
+            <span>Local Node Streams</span>
           </button>
-          <button onClick={() => setTab('global')} className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${tab === 'global' ? 'bg-blue-500/10 text-blue-400' : 'text-gray-500 hover:text-gray-300'}`}>
-            Global History
+          <button
+            onClick={() => setTab('global')}
+            className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all ${
+              tab === 'global'
+                ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span>Global Tracker Audit</span>
           </button>
         </div>
-        <button onClick={current.refetch} className="inline-flex items-center gap-2 px-3 py-2 bg-[#2a2d3a] hover:bg-[#3a3d4a] text-gray-300 text-sm rounded-lg transition-colors">
-          <RefreshCw className="w-4 h-4" /> Refresh
+
+        <button
+          onClick={current.refetch}
+          className="glass-button inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-medium text-slate-200 hover:text-white rounded-xl transition-all shadow-sm"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          <span>Sync Transfers</span>
         </button>
       </div>
 
+      {/* Main Transfer List */}
       {current.error ? (
         <ErrorState message={current.error} onRetry={current.refetch} />
       ) : (

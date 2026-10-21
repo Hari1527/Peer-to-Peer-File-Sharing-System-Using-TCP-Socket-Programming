@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { LoadingSkeleton } from '../ui/LoadingSkeleton';
 import { StatusBadge } from '../ui/StatusBadge';
 import { formatBytes, formatTimestamp } from '../../utils/format';
-import { Copy, Download } from 'lucide-react';
+import { Copy, Download, Check, ShieldCheck, HardDrive } from 'lucide-react';
 import type { SharedFileInfo } from '../../types/file';
 import type { PeerInfo } from '../../types/peer';
 
@@ -15,54 +16,92 @@ interface Props {
 }
 
 export function FileDetails({ file, peers, onDownload, onClose, loading }: Props) {
+  const [copied, setCopied] = useState(false);
+
   if (!file) return null;
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(file.checksum);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <Modal isOpen={!!file} onClose={onClose} title="File Details" size="lg">
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <p className="text-gray-500 text-xs mb-1">Filename</p>
-            <p className="text-gray-100 font-medium">{file.filename}</p>
+    <Modal isOpen={!!file} onClose={onClose} title="File Metadata & Sources" size="lg">
+      <div className="space-y-5">
+        {/* File Metadata Overview */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div className="glass-card p-3.5 rounded-xl border border-white/[0.06]">
+            <p className="text-slate-400 text-[11px] mb-1">Target Filename</p>
+            <p className="text-white font-medium text-sm truncate font-mono">{file.filename}</p>
           </div>
-          <div>
-            <p className="text-gray-500 text-xs mb-1">Size</p>
-            <p className="text-gray-100">{formatBytes(file.size)}</p>
+          <div className="glass-card p-3.5 rounded-xl border border-white/[0.06]">
+            <p className="text-slate-400 text-[11px] mb-1">Total Binary Size</p>
+            <p className="text-cyan-300 font-medium text-sm font-mono">{formatBytes(file.size)}</p>
           </div>
-          <div className="col-span-2">
-            <p className="text-gray-500 text-xs mb-1">SHA-256 Checksum</p>
-            <div className="flex items-center gap-2">
-              <code className="text-xs text-gray-300 bg-[#0f1117] px-2 py-1 rounded font-mono break-all">{file.checksum}</code>
-              <button onClick={() => navigator.clipboard.writeText(file.checksum)} className="text-gray-500 hover:text-gray-300 shrink-0"><Copy className="w-3.5 h-3.5" /></button>
+          <div className="sm:col-span-2 glass-card p-3.5 rounded-xl border border-white/[0.06]">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="flex items-center gap-1.5 text-slate-400 text-[11px]">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                SHA-256 Cryptographic Checksum
+              </span>
+              <button
+                onClick={handleCopy}
+                className="flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-300 font-mono transition-colors"
+              >
+                {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                {copied ? 'Copied' : 'Copy Hash'}
+              </button>
             </div>
+            <code className="block text-[11px] text-slate-200 bg-slate-950/60 p-2.5 rounded-lg font-mono break-all border border-white/[0.04]">
+              {file.checksum}
+            </code>
           </div>
-          <div>
-            <p className="text-gray-500 text-xs mb-1">Shared At</p>
-            <p className="text-gray-400 text-sm">{formatTimestamp(file.shared_at)}</p>
+          <div className="glass-card p-3.5 rounded-xl border border-white/[0.06]">
+            <p className="text-slate-400 text-[11px] mb-1">Indexed At</p>
+            <p className="text-slate-300 font-mono text-[11px]">{formatTimestamp(file.shared_at)}</p>
+          </div>
+          <div className="glass-card p-3.5 rounded-xl border border-white/[0.06]">
+            <p className="text-slate-400 text-[11px] mb-1">Internal File ID</p>
+            <p className="text-slate-400 font-mono text-[11px] truncate">{file.file_id}</p>
           </div>
         </div>
 
-        <div className="border-t border-[#2a2d3a] pt-4">
-          <h4 className="text-gray-200 font-medium text-sm mb-3">Available Peers</h4>
-          {loading ? <LoadingSkeleton variant="table" count={2} /> : peers.length === 0 ? (
-            <p className="text-gray-500 text-sm">No peers found for this file.</p>
+        {/* Available Peers List */}
+        <div className="border-t border-white/[0.08] pt-4">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-white font-medium text-xs tracking-wide uppercase">
+              Host Peers ({peers.length})
+            </h4>
+            <span className="text-[11px] text-slate-400">Direct TCP endpoints</span>
+          </div>
+
+          {loading ? (
+            <LoadingSkeleton variant="table" count={2} />
+          ) : peers.length === 0 ? (
+            <div className="text-center py-6 glass-card rounded-xl border border-white/[0.06]">
+              <HardDrive className="w-8 h-8 text-slate-500 mx-auto mb-2" />
+              <p className="text-slate-400 text-xs">No active peers currently host this file.</p>
+            </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
               {peers.map(p => (
-                <div key={p.peer_id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-[#0f1117]">
+                <div
+                  key={p.peer_id}
+                  className="flex items-center justify-between p-3 rounded-xl glass-card border border-white/[0.06] hover:border-cyan-500/30 transition-all"
+                >
                   <div className="flex items-center gap-3">
-                    <StatusBadge status={p.status} />
-                    <div>
-                      <p className="text-sm text-gray-200 font-medium">{p.peer_id}</p>
-                      <p className="text-xs text-gray-500">{p.host}:{p.tcp_port}</p>
-                    </div>
+                    <span className="text-xs font-mono font-medium text-white">{p.peer_id}</span>
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      {p.host}:{p.tcp_port}
+                    </span>
+                    <StatusBadge status={p.status} size="sm" />
                   </div>
                   <button
                     onClick={() => onDownload(p.peer_id)}
-                    disabled={p.status !== 'online'}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs rounded-lg transition-colors"
+                    className="glass-button-primary inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-white rounded-lg font-medium shadow-sm transition-transform hover:scale-105"
                   >
-                    <Download className="w-3.5 h-3.5" /> Download
+                    <Download className="w-3.5 h-3.5" /> Pull from Node
                   </button>
                 </div>
               ))}

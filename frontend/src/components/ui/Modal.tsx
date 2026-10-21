@@ -15,7 +15,9 @@ const widths = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl' };
 export function Modal({ isOpen, onClose, title, children, size = 'md' }: Props) {
   useEffect(() => {
     if (!isOpen) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
@@ -23,19 +25,32 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: Props) 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/60" />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+      onClick={onClose}
+    >
+      {/* Blurred Backdrop */}
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-md transition-opacity" />
+
+      {/* Glass Modal Box */}
       <div
-        className={`relative bg-[#1a1d28] border border-[#2a2d3a] rounded-xl shadow-xl w-full ${widths[size]} animate-fade-in`}
+        className={`relative glass-panel rounded-2xl border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] w-full ${widths[size]} animate-fade-in z-10 overflow-hidden`}
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#2a2d3a]">
-          <h2 className="text-gray-100 font-semibold">{title}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-300 transition-colors">
-            <X className="w-5 h-5" />
+        {/* Modal Header */}
+        <div className="flex items-center justify-between px-6 py-4.5 border-b border-white/[0.08] bg-white/[0.02]">
+          <h2 className="text-white font-semibold text-sm sm:text-base tracking-tight">{title}</h2>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/[0.08] transition-colors"
+            aria-label="Close dialog"
+          >
+            <X className="w-4.5 h-4.5" />
           </button>
         </div>
-        <div className="px-5 py-4">{children}</div>
+
+        {/* Modal Body */}
+        <div className="p-6">{children}</div>
       </div>
     </div>
   );

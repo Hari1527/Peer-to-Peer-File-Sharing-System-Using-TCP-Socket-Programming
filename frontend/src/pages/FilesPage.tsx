@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, FolderSearch, HardDrive, Shield } from 'lucide-react';
 import { useAppContext, useTrackerApi, usePeerApi } from '../context/AppContext';
 import { useApi } from '../hooks/useApi';
 import { FileTable } from '../components/files/FileTable';
@@ -23,6 +23,7 @@ export default function FilesPage() {
   const [filePeers, setFilePeers] = useState<PeerInfo[]>([]);
   const [loadingPeers, setLoadingPeers] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchFiles = useCallback(() => {
     return search.trim() ? trackerApi.searchFiles(search.trim()) : trackerApi.getFiles();
@@ -37,7 +38,9 @@ export default function FilesPage() {
     try {
       const res = await trackerApi.getFilePeers(file.file_id);
       setFilePeers(res.peers);
-    } catch { setFilePeers([]); }
+    } catch {
+      setFilePeers([]);
+    }
     setLoadingPeers(false);
   };
 
@@ -47,7 +50,9 @@ export default function FilesPage() {
     try {
       const res = await trackerApi.getFilePeers(file.file_id);
       setFilePeers(res.peers);
-    } catch { setFilePeers([]); }
+    } catch {
+      setFilePeers([]);
+    }
     setLoadingPeers(false);
     setShowDownload(true);
   };
@@ -56,7 +61,7 @@ export default function FilesPage() {
     setDownloading(true);
     try {
       await peerApi.downloadFile(request);
-      addNotification('success', `Download started: ${request.filename}`);
+      addNotification('success', `Direct TCP download initiated: ${request.filename}`);
       setShowDownload(false);
     } catch (err) {
       addNotification('error', `Download failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -71,40 +76,81 @@ export default function FilesPage() {
   };
 
   const handleRefresh = async () => {
+    setRefreshing(true);
     try {
       await peerApi.refreshFiles();
-      addNotification('success', 'Files refreshed');
+      addNotification('success', 'Local shared directory re-indexed');
       files.refetch();
     } catch (err) {
       addNotification('error', `Refresh failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
+    setRefreshing(false);
   };
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-        <div className="flex-1 w-full sm:max-w-sm">
-          <SearchInput value={search} onChange={setSearch} placeholder="Search files..." />
+    <div className="space-y-5 animate-fade-in">
+      {/* Top Controls Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="w-full sm:max-w-md">
+          <SearchInput value={search} onChange={setSearch} placeholder="Search indexed files by name..." />
         </div>
-        <button onClick={handleRefresh} className="inline-flex items-center gap-2 px-3 py-2 bg-[#2a2d3a] hover:bg-[#3a3d4a] text-gray-300 text-sm rounded-lg transition-colors">
-          <RefreshCw className="w-4 h-4" /> Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="glass-button inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-200 hover:text-white rounded-xl transition-all shadow-sm"
+            title="Scan local directory and update tracker index"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-cyan-400' : ''}`} />
+            <span>Scan Directory</span>
+          </button>
+        </div>
       </div>
 
+      {/* Main File Table Glass Panel */}
       {files.error ? (
         <ErrorState message={files.error} onRetry={files.refetch} />
       ) : (
-        <div className="bg-[#1a1d28] rounded-xl border border-[#2a2d3a]">
-          <div className="px-5 py-3 border-b border-[#2a2d3a] flex items-center justify-between">
-            <h3 className="text-gray-200 font-medium text-sm">Shared Files</h3>
-            <span className="text-xs text-gray-500">{files.data?.total ?? 0} files</span>
+        <div className="glass-panel rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-white/[0.08] flex items-center justify-between bg-white/[0.02]">
+            <div className="flex items-center gap-2">
+              <FolderSearch className="w-4 h-4 text-cyan-400" />
+              <h3 className="text-white font-semibold text-xs tracking-wide uppercase">
+                Decentralized Catalog
+              </h3>
+            </div>
+            <span className="text-[11px] font-mono font-medium text-slate-400 bg-white/[0.04] px-2.5 py-1 rounded-md border border-white/[0.06]">
+              {files.data?.total ?? 0} files indexed
+            </span>
           </div>
-          <FileTable files={files.data?.files ?? []} loading={files.loading} onViewPeers={handleViewPeers} onDownload={handleOpenDownload} />
+
+          <FileTable
+            files={files.data?.files ?? []}
+            loading={files.loading}
+            onViewPeers={handleViewPeers}
+            onDownload={handleOpenDownload}
+            emptyMessage={search ? `No files matching "${search}" found.` : undefined}
+          />
         </div>
       )}
 
-      <FileDetails file={selectedFile} peers={filePeers} onDownload={handleDownloadFromDetails} onClose={() => setShowDetails(false)} loading={loadingPeers} />
-      <DownloadModal isOpen={showDownload} onClose={() => setShowDownload(false)} file={selectedFile} peers={filePeers} onStartDownload={handleDownload} downloading={downloading} />
+      {/* Modals */}
+      <FileDetails
+        file={selectedFile}
+        peers={filePeers}
+        onDownload={handleDownloadFromDetails}
+        onClose={() => setShowDetails(false)}
+        loading={loadingPeers}
+      />
+
+      <DownloadModal
+        isOpen={showDownload}
+        onClose={() => setShowDownload(false)}
+        file={selectedFile}
+        peers={filePeers}
+        onStartDownload={handleDownload}
+        downloading={downloading}
+      />
     </div>
   );
 }

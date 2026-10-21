@@ -1,29 +1,82 @@
-import { getStatusColor, getStatusBgColor } from '../../utils/format';
-
 interface Props {
   status: string;
   size?: 'sm' | 'md';
 }
 
-const dotColor: Record<string, string> = {
-  online: 'bg-emerald-400', completed: 'bg-emerald-400',
-  offline: 'bg-red-400', failed: 'bg-red-400',
-  downloading: 'bg-blue-400', connecting: 'bg-blue-400', pending: 'bg-blue-400',
-  verifying: 'bg-amber-400',
-  cancelled: 'bg-gray-400',
+const statusConfig: Record<string, { text: string; bg: string; dot: string; glow: string }> = {
+  online: {
+    text: 'text-emerald-300',
+    bg: 'bg-emerald-500/10 border-emerald-500/20',
+    dot: 'bg-emerald-400',
+    glow: 'shadow-[0_0_8px_rgba(52,211,153,0.5)]',
+  },
+  completed: {
+    text: 'text-emerald-300',
+    bg: 'bg-emerald-500/10 border-emerald-500/20',
+    dot: 'bg-emerald-400',
+    glow: 'shadow-[0_0_8px_rgba(52,211,153,0.5)]',
+  },
+  downloading: {
+    text: 'text-cyan-300',
+    bg: 'bg-cyan-500/10 border-cyan-500/20',
+    dot: 'bg-cyan-400 animate-pulse',
+    glow: 'shadow-[0_0_8px_rgba(34,211,238,0.5)]',
+  },
+  connecting: {
+    text: 'text-cyan-300',
+    bg: 'bg-cyan-500/10 border-cyan-500/20',
+    dot: 'bg-cyan-400 animate-pulse',
+    glow: 'shadow-[0_0_8px_rgba(34,211,238,0.5)]',
+  },
+  pending: {
+    text: 'text-blue-300',
+    bg: 'bg-blue-500/10 border-blue-500/20',
+    dot: 'bg-blue-400',
+    glow: 'shadow-[0_0_8px_rgba(96,165,250,0.5)]',
+  },
+  verifying: {
+    text: 'text-amber-300',
+    bg: 'bg-amber-500/10 border-amber-500/20',
+    dot: 'bg-amber-400 animate-pulse',
+    glow: 'shadow-[0_0_8px_rgba(251,191,36,0.5)]',
+  },
+  failed: {
+    text: 'text-rose-300',
+    bg: 'bg-rose-500/10 border-rose-500/20',
+    dot: 'bg-rose-400',
+    glow: 'shadow-[0_0_8px_rgba(251,113,133,0.5)]',
+  },
+  offline: {
+    text: 'text-rose-300',
+    bg: 'bg-rose-500/10 border-rose-500/20',
+    dot: 'bg-rose-400',
+    glow: 'shadow-[0_0_8px_rgba(251,113,133,0.5)]',
+  },
+  cancelled: {
+    text: 'text-slate-400',
+    bg: 'bg-slate-500/10 border-slate-500/20',
+    dot: 'bg-slate-400',
+    glow: '',
+  },
 };
 
 export function StatusBadge({ status, size = 'sm' }: Props) {
   const s = status.toLowerCase();
-  const textCls = getStatusColor(s);
-  const bgCls = getStatusBgColor(s);
-  const dot = dotColor[s] || 'bg-gray-400';
-  const sz = size === 'sm' ? 'text-xs px-2 py-0.5' : 'text-sm px-3 py-1';
+  const cfg = statusConfig[s] || {
+    text: 'text-slate-300',
+    bg: 'bg-slate-500/10 border-slate-500/20',
+    dot: 'bg-slate-400',
+    glow: '',
+  };
+
+  const sz = size === 'sm' ? 'text-[11px] px-2.5 py-0.5' : 'text-xs px-3 py-1';
 
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full font-medium ${sz} ${textCls} ${bgCls}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${dot} ${s === 'downloading' || s === 'connecting' ? 'animate-pulse-subtle' : ''}`} />
-      {s.charAt(0).toUpperCase() + s.slice(1)}
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full font-medium tracking-wide border backdrop-blur-md ${sz} ${cfg.text} ${cfg.bg}`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot} ${cfg.glow}`} />
+      <span className="capitalize">{s}</span>
     </span>
   );
 }

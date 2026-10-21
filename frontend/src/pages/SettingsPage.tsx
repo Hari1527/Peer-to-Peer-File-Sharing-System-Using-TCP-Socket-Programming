@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Save, CheckCircle2, Wifi, WifiOff, Server, HardDrive, Info, RotateCcw } from 'lucide-react';
+import {
+  Save, CheckCircle2, Server, HardDrive, Info, RotateCcw,
+  ShieldCheck, Cpu, Terminal, Radio, Network
+} from 'lucide-react';
 import { useAppContext, useTrackerApi, usePeerApi } from '../context/AppContext';
 
 export default function SettingsPage() {
@@ -17,7 +20,7 @@ export default function SettingsPage() {
     setTrackerUrl(trackerInput);
     setPeerUrl(peerInput);
     setSaved(true);
-    addNotification('success', 'Settings saved');
+    addNotification('success', 'Endpoint configurations saved & applied');
     setTimeout(() => setSaved(false), 2000);
   };
 
@@ -25,8 +28,10 @@ export default function SettingsPage() {
     setTestingTracker(true);
     try {
       await trackerApi.getHealth();
-      addNotification('success', 'Tracker is reachable');
-    } catch { addNotification('error', 'Cannot reach tracker'); }
+      addNotification('success', 'Tracker server is active & responding');
+    } catch {
+      addNotification('error', 'Unable to reach tracker server at this URL');
+    }
     setTestingTracker(false);
   };
 
@@ -34,8 +39,10 @@ export default function SettingsPage() {
     setTestingPeer(true);
     try {
       await peerApi.getStatus();
-      addNotification('success', 'Peer agent is reachable');
-    } catch { addNotification('error', 'Cannot reach peer agent'); }
+      addNotification('success', 'Local peer agent responded with valid status');
+    } catch {
+      addNotification('error', 'Unable to reach peer agent at this URL');
+    }
     setTestingPeer(false);
   };
 
@@ -45,81 +52,164 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl animate-fade-in">
-      {/* Connection Settings */}
-      <div className="bg-[#1a1d28] rounded-xl border border-[#2a2d3a] p-5">
-        <h3 className="text-gray-100 font-semibold mb-4">Connection Settings</h3>
-        <div className="space-y-4">
+    <div className="space-y-6 max-w-3xl animate-fade-in pb-10">
+      {/* Connection Endpoints Config */}
+      <div className="glass-panel rounded-2xl border border-white/[0.08] p-6 shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
           <div>
-            <label className="flex items-center gap-2 text-sm text-gray-300 mb-1.5">
-              <Server className="w-4 h-4 text-gray-500" /> Tracker API URL
-              <span className={`w-1.5 h-1.5 rounded-full ml-auto ${state.trackerConnected ? 'bg-emerald-400' : 'bg-red-400'}`} />
+            <h3 className="text-white font-semibold text-sm">Target Endpoints</h3>
+            <p className="text-[11px] text-slate-400">
+              Configure tracker registry and local peer REST control ports
+            </p>
+          </div>
+          <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-2.5 py-1 rounded-md border border-cyan-500/20">
+            DYNAMIC SWITCHER
+          </span>
+        </div>
+
+        <div className="space-y-4.5">
+          {/* Tracker URL */}
+          <div>
+            <label className="flex items-center gap-2 text-xs font-medium text-slate-300 mb-2">
+              <Server className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Tracker Server REST API</span>
+              <span className="ml-auto flex items-center gap-1.5 text-[10px] font-mono">
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    state.trackerConnected
+                      ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]'
+                      : 'bg-rose-400'
+                  }`}
+                />
+                <span className={state.trackerConnected ? 'text-emerald-400' : 'text-rose-400'}>
+                  {state.trackerConnected ? 'REACHABLE' : 'UNREACHABLE'}
+                </span>
+              </span>
             </label>
             <div className="flex gap-2">
-              <input value={trackerInput} onChange={e => setTrackerInput(e.target.value)}
-                className="flex-1 bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:border-blue-500 outline-none" />
-              <button onClick={testTracker} disabled={testingTracker}
-                className="px-3 py-2 text-xs bg-[#2a2d3a] hover:bg-[#3a3d4a] text-gray-300 rounded-lg disabled:opacity-50 transition-colors whitespace-nowrap">
-                {testingTracker ? 'Testing...' : 'Test'}
+              <input
+                value={trackerInput}
+                onChange={e => setTrackerInput(e.target.value)}
+                placeholder="http://localhost:8000"
+                className="glass-input flex-1 rounded-xl px-3.5 py-2 text-xs font-mono text-white placeholder-slate-500 outline-none focus:border-cyan-400/50"
+              />
+              <button
+                onClick={testTracker}
+                disabled={testingTracker}
+                className="glass-button px-4 py-2 text-xs font-medium text-slate-300 hover:text-white rounded-xl transition-all disabled:opacity-50 whitespace-nowrap shadow-sm"
+              >
+                {testingTracker ? 'Pinging...' : 'Test Connection'}
               </button>
             </div>
           </div>
+
+          {/* Peer Agent URL */}
           <div>
-            <label className="flex items-center gap-2 text-sm text-gray-300 mb-1.5">
-              <HardDrive className="w-4 h-4 text-gray-500" /> Peer Agent URL
-              <span className={`w-1.5 h-1.5 rounded-full ml-auto ${state.peerConnected ? 'bg-emerald-400' : 'bg-red-400'}`} />
+            <label className="flex items-center gap-2 text-xs font-medium text-slate-300 mb-2">
+              <HardDrive className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Target Peer Agent API (Local Node)</span>
+              <span className="ml-auto flex items-center gap-1.5 text-[10px] font-mono">
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    state.peerConnected
+                      ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]'
+                      : 'bg-rose-400'
+                  }`}
+                />
+                <span className={state.peerConnected ? 'text-emerald-400' : 'text-rose-400'}>
+                  {state.peerConnected ? 'ONLINE' : 'DISCONNECTED'}
+                </span>
+              </span>
             </label>
             <div className="flex gap-2">
-              <input value={peerInput} onChange={e => setPeerInput(e.target.value)}
-                className="flex-1 bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:border-blue-500 outline-none" />
-              <button onClick={testPeer} disabled={testingPeer}
-                className="px-3 py-2 text-xs bg-[#2a2d3a] hover:bg-[#3a3d4a] text-gray-300 rounded-lg disabled:opacity-50 transition-colors whitespace-nowrap">
-                {testingPeer ? 'Testing...' : 'Test'}
+              <input
+                value={peerInput}
+                onChange={e => setPeerInput(e.target.value)}
+                placeholder="http://localhost:8001"
+                className="glass-input flex-1 rounded-xl px-3.5 py-2 text-xs font-mono text-white placeholder-slate-500 outline-none focus:border-cyan-400/50"
+              />
+              <button
+                onClick={testPeer}
+                disabled={testingPeer}
+                className="glass-button px-4 py-2 text-xs font-medium text-slate-300 hover:text-white rounded-xl transition-all disabled:opacity-50 whitespace-nowrap shadow-sm"
+              >
+                {testingPeer ? 'Pinging...' : 'Test Connection'}
               </button>
             </div>
+            <p className="text-[11px] text-slate-500 mt-1 font-mono">
+              💡 Switch between <span className="text-slate-400">http://localhost:8001</span> (Peer 1) and <span className="text-slate-400">http://localhost:8002</span> (Peer 2).
+            </p>
           </div>
-          <div className="flex items-center gap-2 pt-2">
-            <button onClick={handleSave} className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors">
-              {saved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />} {saved ? 'Saved!' : 'Save'}
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2.5 pt-3 border-t border-white/[0.08]">
+            <button
+              onClick={handleSave}
+              className="glass-button-primary inline-flex items-center gap-2 px-5 py-2 text-xs font-medium text-white rounded-xl shadow-md transition-all hover:scale-[1.02]"
+            >
+              {saved ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+              <span>{saved ? 'Saved & Applied' : 'Save Configurations'}</span>
             </button>
-            <button onClick={handleReset} className="inline-flex items-center gap-2 px-4 py-2 bg-[#2a2d3a] hover:bg-[#3a3d4a] text-gray-300 text-sm rounded-lg transition-colors">
-              <RotateCcw className="w-4 h-4" /> Reset
+            <button
+              onClick={handleReset}
+              className="glass-button inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-xl transition-all"
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> Reset Defaults
             </button>
           </div>
         </div>
       </div>
 
-      {/* System Info */}
+      {/* Active Peer Diagnostics Card */}
       {state.peerStatus && (
-        <div className="bg-[#1a1d28] rounded-xl border border-[#2a2d3a] p-5">
-          <h3 className="text-gray-100 font-semibold mb-4">Peer Agent Info</h3>
-          <dl className="grid grid-cols-2 gap-3 text-sm">
+        <div className="glass-panel rounded-2xl border border-white/[0.08] p-6 shadow-2xl">
+          <div className="flex items-center gap-2 mb-4">
+            <Cpu className="w-4 h-4 text-cyan-400" />
+            <h3 className="text-white font-semibold text-sm">Active Node Telemetry</h3>
+          </div>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
             {[
-              ['Peer ID', state.peerStatus.peer_id],
-              ['Status', state.peerStatus.status],
-              ['TCP Port', state.peerStatus.tcp_port],
-              ['API Port', state.peerStatus.api_port],
+              ['Identifier (Peer ID)', state.peerStatus.peer_id],
+              ['Status', state.peerStatus.status.toUpperCase()],
+              ['TCP Transfer Socket Port', state.peerStatus.tcp_port],
+              ['REST Control Port', state.peerStatus.api_port],
               ['Shared Directory', state.peerStatus.shared_dir],
-              ['Download Directory', state.peerStatus.download_dir],
-              ['Shared Files', state.peerStatus.files_shared],
-              ['Active Transfers', state.peerStatus.active_transfers],
+              ['Downloads Target Directory', state.peerStatus.download_dir],
+              ['Files Indexed & Published', state.peerStatus.files_shared],
+              ['Concurrent Socket Transfers', state.peerStatus.active_transfers],
             ].map(([label, value]) => (
-              <div key={String(label)}>
-                <dt className="text-gray-500 text-xs">{String(label)}</dt>
-                <dd className="text-gray-200 font-mono text-xs mt-0.5">{String(value)}</dd>
+              <div
+                key={String(label)}
+                className="glass-card p-3 rounded-xl border border-white/[0.05]"
+              >
+                <dt className="text-slate-400 text-[10px] uppercase tracking-wider font-semibold">
+                  {String(label)}
+                </dt>
+                <dd className="text-slate-100 font-mono text-xs mt-1 truncate font-medium">
+                  {String(value)}
+                </dd>
               </div>
             ))}
           </dl>
         </div>
       )}
 
-      {/* Help */}
-      <div className="bg-[#1a1d28] rounded-xl border border-[#2a2d3a] p-5">
-        <h3 className="text-gray-100 font-semibold mb-3 flex items-center gap-2"><Info className="w-4 h-4 text-blue-400" /> How It Works</h3>
-        <div className="text-sm text-gray-400 space-y-2">
-          <p>This dashboard communicates with the Python backend services running on your machine.</p>
-          <p>The <strong className="text-gray-300">Tracker Server</strong> manages peer registrations and file discovery. The <strong className="text-gray-300">Peer Agent</strong> handles file sharing and direct TCP transfers.</p>
-          <p className="text-gray-500 text-xs mt-3">Note: The browser cannot access local files directly. All file sharing and downloads are performed by the Python peer agent process.</p>
+      {/* Architectural Documentation Callout */}
+      <div className="glass-panel rounded-2xl border border-white/[0.08] p-6 shadow-xl">
+        <div className="flex items-center gap-2 mb-3">
+          <Info className="w-4 h-4 text-indigo-400" />
+          <h3 className="text-white font-semibold text-sm">System Mechanics & TCP Architecture</h3>
+        </div>
+        <div className="text-xs text-slate-400 space-y-2 leading-relaxed">
+          <p>
+            • <strong className="text-slate-200">Zero-Relay Decentralization:</strong> The Tracker manages peer registrations, file metadata, and SHA-256 hashes. Actual binary file data is never transmitted through the tracker server.
+          </p>
+          <p>
+            • <strong className="text-slate-200">Raw TCP Sockets:</strong> File downloads bypass HTTP and open direct TCP socket connections framed by a custom 8-byte binary header with 64KB chunk streaming.
+          </p>
+          <p>
+            • <strong className="text-slate-200">Browser Security Sandbox:</strong> Web browsers cannot initiate raw TCP sockets directly; all transfers are commanded through the local Python peer agent's REST control API.
+          </p>
         </div>
       </div>
     </div>
