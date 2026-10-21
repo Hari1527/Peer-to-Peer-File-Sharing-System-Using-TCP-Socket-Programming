@@ -445,22 +445,3 @@ shasum -a 256 backend/downloads_peer2/welcome.txt
 ```
 
 ---
-
-## 🎓 Portfolio & Design Insights
-
-When showcasing this project to interviewers or evaluating its architecture:
-
-1. **Why Custom TCP Sockets instead of HTTP?**
-   - High-throughput binary streaming without HTTP overhead or keep-alive penalties.
-   - Demonstrates foundational systems engineering: manual framing, byte-packing, socket buffering, and network endianness (`struct.pack("!2sBBI")`).
-
-2. **Decentralized vs. Centralized Balance**:
-   - The tracker acts purely as an index directory (similar to BitTorrent trackers). All bulk data transfer occurs in a decentralized peer-to-peer mesh.
-
-3. **Defensive Systems Programming**:
-   - Every file download computes a rolling SHA-256 digest in real-time. Files are isolated in staging buffers until the checksum is cryptographically validated before final placement.
-   - Rigorous path sanitization prevents directory traversal vulnerabilities even if a malicious peer crafts invalid filenames.
-
-4. **Production-Grade Frontend Architecture**:
-   - Complete TypeScript interfaces mirroring backend Pydantic models.
-   - Resilient WebSocket connection management with exponential backoff reconnects and fallback HTTP polling.
