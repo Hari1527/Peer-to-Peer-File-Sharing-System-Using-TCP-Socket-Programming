@@ -16,12 +16,6 @@ A complete, high-performance, decentralized peer-to-peer (P2P) file-sharing appl
   - [Peer Control Endpoints](#peer-control-endpoints)
   - [WebSocket Event Stream](#websocket-event-stream)
 - [Frontend Dashboard](#-frontend-dashboard)
-- [Quick Start](#-quick-start)
-  - [Automated Full Stack Launch](#1-automated-full-stack-launch)
-  - [Manual Step-by-Step Launch](#2-manual-step-by-step-launch)
-- [Automated Testing](#-automated-testing)
-- [End-to-End Verification](#-end-to-end-verification)
-- [Portfolio & Design Insights](#-portfolio--design-insights)
 
 ---
 
